@@ -1,33 +1,24 @@
 
 import os
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from massive import RESTClient
-from config import POLYGON_IO_KEY
+from core.config import POLYGON_IO_KEY
 from models.YFinanance import EarningsData, YFinanceResponse, CompanyInfoResponse
-import yfinance as yf
+from services.company_data_service import CompanyDataService
+from core.dependencies import get_company_data_service
 
 router = APIRouter(prefix="/api")
 polygon_client = RESTClient(POLYGON_IO_KEY)
 
-DATE_FORMAT = "%Y-%m-%d"
-
 @router.get("/upcoming-earnings")
-# def get_upcoming_earnings(ticker: YFinanceRequest) -> YFinanceResponse:
-def get_upcoming_earnings(ticker: str) -> YFinanceResponse:
-    data = yf.Ticker(ticker).get_earnings_dates()
-    earnings_list = []
-    for date, row in data.iterrows():
-        earnings_list.append(EarningsData(
-            earnings_date=date.strftime(DATE_FORMAT),
-            eps_estimate=row['EPS Estimate'],
-            eps_actual=row['Reported EPS']
-        ))
+def get_upcoming_earnings(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)) -> YFinanceResponse:
+    earnings_list = company_data_service.fetch_earnings_data(ticker)
     return YFinanceResponse(ticker=ticker, earnings=earnings_list)
 
 @router.get("/company-info") 
-def get_company_info(ticker: str) -> CompanyInfoResponse:
-    data = yf.Ticker(ticker).info
+def get_company_info(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)) -> CompanyInfoResponse:
+    data = company_data_service.fetch_company_data(ticker)
     return CompanyInfoResponse(
         ticker=ticker,
         industry=data.get("industry", ""),
@@ -39,7 +30,12 @@ def get_company_info(ticker: str) -> CompanyInfoResponse:
         longBusinessSummary=data.get("longBusinessSummary", "")
     )
 
+@router.get("/earnings-estimates")
+def get_earnings_estimates(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)):
+    estimates = company_data_service.get_upcoming_earnings_estimates(ticker)
+    return estimates
+
 @router.get("/test")
-def test_endpoint():
-    data = yf.Ticker("AAPL").info
+def test_endpoint(_id: str, company_data_service: CompanyDataService = Depends(get_company_data_service)):
+    data = company_data_service.temp(_id)
     return {"data": data}
