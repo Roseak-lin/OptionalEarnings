@@ -10,7 +10,7 @@ from pymongo import MongoClient, UpdateOne
 from pymongo.errors import BulkWriteError
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from core.config import MONGO_URI
+from OptionalEarnings.backend.core.config import MONGO_URI
 
 logging.basicConfig(
     level=logging.INFO,
@@ -221,6 +221,5 @@ if __name__ == "__main__":
         # result = etl.run()
         calendar = yf.Calendars()
         print(calendar.get_earnings_calendar(start="2026-03-24", end="2026-03-27"))
-        # print(etl.fetch_earnings_for_ticker("KOPN", etl.get_previous_trading_day()))
     finally:
         etl.close()
