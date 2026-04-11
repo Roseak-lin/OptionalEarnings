@@ -4,6 +4,20 @@ from repository.past_earnings_repository import PastEarningsRepository
 from services.company_data_service import CompanyDataService
 from core.database import get_company_data, get_general_market_data
 
+SECTOR_ETF_MAP = {
+    "Technology": "XLK",
+    "Financial Services": "XLF",
+    "Healthcare": "XLV",
+    "Energy": "XLE",
+    "Consumer Cyclical": "XLY",
+    "Consumer Defensive": "XLP",
+    "Industrials": "XLI",
+    "Utilities": "XLU",
+    "Basic Materials": "XLB",
+    "Real Estate": "XLRE",
+    "Communication Services": "XLC"
+}
+
 def get_past_earnings_db():
     return get_company_data()
 

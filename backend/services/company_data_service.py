@@ -1,3 +1,4 @@
+import numpy as np
 import yfinance as yf
 from models.YFinanance import EarningsData
 from repository.past_earnings_repository import PastEarningsRepository
@@ -16,15 +17,19 @@ class CompanyDataService:
             self._data[ticker] = yf.Ticker(ticker).info
         return self._data[ticker]
     
-    def fetch_earnings_data(self, ticker: str):
+    def fetch_upcoming_earnings_data(self, ticker: str):
         data = yf.Ticker(ticker).get_earnings_dates()
         earnings_list = []
         for date, row in data.iterrows():
-            earnings_list.append(EarningsData(
-                earnings_date=date.strftime(DATE_FORMAT),
-                eps_estimate=row['EPS Estimate'],
-                eps_actual=row['Reported EPS']
-            ))
+            try: 
+                earnings_list.append(EarningsData(
+                    earnings_date=date.strftime(DATE_FORMAT),
+                    eps_estimate=row['EPS Estimate'],
+                    eps_actual=row['Reported EPS'] if not np.isnan(row['Reported EPS']) else None,
+                ))
+            except ValueError as exc:
+                print(f"Error processing earnings data for {ticker} on {date}: {exc}")
+                continue
         return earnings_list
     
     def get_upcoming_earnings_estimates(self, ticker: str):
@@ -38,6 +43,7 @@ class CompanyDataService:
         
         return estimates
     
-    def temp(self, _id: str):
-        print("REPO: ", self.repo)
-        return self.repo.temp(_id)
+    def get_historical_earnings(self, ticker: str):
+        if self.repo is None:
+            raise ValueError("PastEarningsRepository is not initialized.")
+        return self.repo.get_earnings_by_ticker(ticker)

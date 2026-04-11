@@ -1,12 +1,13 @@
 from pymongo.collection import Collection
 from pymongo import UpdateOne
 from pymongo.errors import BulkWriteError
-from bson import ObjectId
 from datetime import datetime
 
+from .base_repository import BaseRepository
 
-class PastEarningsRepository:
+class PastEarningsRepository(BaseRepository):
     def __init__(self, collection: Collection) -> None:
+        super().__init__(collection)
         self.collection = collection["company_earnings_history"]
         self.collection.create_index(
             [("ticker", 1), ("earnings_date", 1)],
@@ -14,12 +15,7 @@ class PastEarningsRepository:
             name="ticker_date_unique",
         )
 
-    # ------------------------------------------------------------------
-    # ETL operations
-    # ------------------------------------------------------------------
-
-    def upsert_earnings(self, record: dict) -> None:
-        """Upsert a single earnings record by ticker + date."""
+    def upsert_data(self, record: dict) -> None:
         self.collection.update_one(
             {
                 "ticker": record["ticker"],
@@ -29,8 +25,7 @@ class PastEarningsRepository:
             upsert=True,
         )
 
-    def bulk_upsert_earnings(self, records: list[dict]) -> dict:
-        """Bulk upsert a list of earnings records. Returns a summary dict."""
+    def bulk_upsert_data(self, records: list[dict]) -> dict:
         if not records:
             return {"upserted": 0, "modified": 0, "errors": 0}
 
@@ -60,16 +55,11 @@ class PastEarningsRepository:
                 "errors": len(bwe.details.get("writeErrors", [])),
             }
 
-    # ------------------------------------------------------------------
-    # Query operations
-    # ------------------------------------------------------------------
-
     def get_earnings_by_ticker(self, ticker: str) -> list[dict]:
         """Get all earnings history for a ticker, sorted by date descending."""
         results = self.collection.find(
-            {"ticker": ticker},
-            {"_id": 0}
-        ).sort("earnings_date", -1)
+            {"ticker": ticker}
+        )
         return list(results)
 
     def get_earnings_by_date(self, date: datetime) -> list[dict]:
@@ -94,17 +84,3 @@ class PastEarningsRepository:
             {"_id": 0}
         ).sort("earnings_date", -1)
         return list(results)
-
-    # ------------------------------------------------------------------
-    # Legacy / user-based operations (kept from original)
-    # ------------------------------------------------------------------
-
-    def add_earnings_data(self, user_id: str, ticker: str, earnings_data: dict) -> dict | None:
-        self.collection.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$push": {f"earnings_data.{ticker}": earnings_data}},
-        )
-        return self.collection.find_one({"_id": ObjectId(user_id)})
-
-    def temp(self, _id: str):
-        return None

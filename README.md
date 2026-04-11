@@ -6,16 +6,16 @@ This project combines event-study methodology, volatility analysis, and market-a
 
 ---
 
-## 🚀 Project Overview
+## Project Overview
 
 Stock prices often move sharply after earnings. However, determining whether a move is:
 
-- 📉 A company-specific reaction  
-- 🌎 A broader market-driven move  
-- ⚡ A volatility shock  
-- 🏦 A sector rotation event  
+- A company-specific reaction  
+- A broader market-driven move  
+- A volatility shock  
+- A sector rotation event  
 
-…is not straightforward.
+...is not straightforward.
 
 This dashboard solves that problem by computing:
 
@@ -29,18 +29,17 @@ This dashboard solves that problem by computing:
 
 ## 🎯 Core Features
 
-### 1️⃣ Earnings Event Tracker
+### Earnings Event Tracker
 
 For each earnings event:
 
 - Close → Next Open Gap %
 - Close → Next Close %
 - Intraday high/low move
-- Volume spike
 
 ---
 
-### 2️⃣ Market Context Overlay
+### Market Context Overlay
 
 On the same earnings date:
 
@@ -51,22 +50,7 @@ On the same earnings date:
 
 ---
 
-### 3️⃣ Earnings Alpha Attribution
-
-#### Market-Adjusted Return
-
-Alpha = Stock Return − SPY Return
-
-#### Beta-Adjusted Return
-
-Expected Return = Beta × SPY Return  
-Alpha = Actual − Expected
-
-This isolates earnings-specific performance from macro effects.
-
----
-
-### 4️⃣ Volatility Reaction Analysis
+### Volatility Reaction Analysis
 
 - Historical average earnings move
 - Implied move vs realized move
@@ -75,19 +59,6 @@ This isolates earnings-specific performance from macro effects.
 
 ---
 
-### 5️⃣ Reaction Classification Engine
-
-Each earnings event is categorized as:
-
-| Category | Description |
-|----------|--------------|
-| Idiosyncratic | Move independent of macro |
-| Macro-Driven | Broad market risk event |
-| Sector-Driven | Sector-wide movement |
-| Overpriced Volatility | Implied > Realized |
-| Underpriced Volatility | Realized > Implied |
-
----
 
 ## 🧠 Why This Matters
 
