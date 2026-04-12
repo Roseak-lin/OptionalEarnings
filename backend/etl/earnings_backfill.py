@@ -176,7 +176,7 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
     return records
 
 def run_backfill(repo: PastEarningsRepository):
-    tickers = get_sp500_tickers()[:10]
+    tickers = get_sp500_tickers()
 
     total_upserted = 0
     total_modified = 0

@@ -58,7 +58,7 @@ class PastEarningsRepository(BaseRepository):
     def get_earnings_by_ticker(self, ticker: str) -> list[dict]:
         """Get all earnings history for a ticker, sorted by date descending."""
         results = self.collection.find(
-            {"ticker": ticker}
+            {"ticker": ticker},
         )
         return list(results)
 

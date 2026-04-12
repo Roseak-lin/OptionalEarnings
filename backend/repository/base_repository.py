@@ -1,6 +1,6 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
-class BaseRepository:
+class BaseRepository(ABC):
     def __init__(self, db):
         self.db = db
         self.collection = None

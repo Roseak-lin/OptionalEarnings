@@ -15,9 +15,10 @@ def get_upcoming_earnings(ticker: str, company_data_service: CompanyDataService 
 
 @router.get("/company-info", description="Fetches company information such as industry, sector, location, market cap, and business summary.") 
 def get_company_info(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)) -> CompanyInfoResponse:
-    data = company_data_service.fetch_company_data(ticker)
+    data = company_data_service.fetch_company_data(ticker.upper())
     return CompanyInfoResponse(
         ticker=ticker,
+        company_name=data.get("shortName", "N/A"),
         industry=data.get("industry", ""),
         sector=data.get("sector", ""),
         city=data.get("city", ""),
@@ -29,10 +30,10 @@ def get_company_info(ticker: str, company_data_service: CompanyDataService = Dep
 
 @router.get("/earnings-estimates", description="Fetches earnings estimates for a given ticker. Returns EPS estimates for the next quarter, including average, low, and high estimates.")
 def get_earnings_estimates(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)):
-    estimates = company_data_service.get_upcoming_earnings_estimates(ticker)
+    estimates = company_data_service.get_upcoming_earnings_estimates(ticker.upper())
     return estimates
 
 @router.get("/earnings-history", description="Fetches historical earnings data for a given ticker, including past earnings dates, EPS estimates, and actual EPS values.")
 def get_earnings_history(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)):
-    earnings_list = company_data_service.get_historical_earnings(ticker)
+    earnings_list = company_data_service.get_historical_earnings(ticker.upper())
     return YFinanceResponse(ticker=ticker, earnings=earnings_list)
