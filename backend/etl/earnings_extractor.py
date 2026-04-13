@@ -1,16 +1,14 @@
-import logging, sys, os
+import logging
 from datetime import datetime, timedelta, timezone
 
 import certifi
-from io import StringIO
-import requests
 import pandas as pd
 import yfinance as yf
 from pymongo import MongoClient, UpdateOne
 from pymongo.errors import BulkWriteError
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from OptionalEarnings.backend.core.config import MONGO_URI
+from utils import get_sp500_tickers
+from core.config import MONGO_URI
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,16 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 class EarningsExtractor:
-    """
-    ETL pipeline that checks every S&P 500 company for earnings reported
-    on the previous trading day and upserts the results into MongoDB.
-
-    Database   : company_data
-    Collection : earnings_history
-    """
-
-    SP500_WIKI_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-
     def __init__(self, mongo_uri: str):
         self.client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
         self.collection = self.client["company_data"]["earnings_history"]
@@ -51,17 +39,6 @@ class EarningsExtractor:
     # ------------------------------------------------------------------
     # Extract
     # ------------------------------------------------------------------
-
-    def get_sp500_tickers(self) -> list[str]:
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-        response = requests.get(self.SP500_WIKI_URL, headers=headers)
-        tables = pd.read_html(StringIO(response.text))
-        
-        df = tables[0]
-        tickers = df["Symbol"].str.replace(".", "-", regex=False).tolist()
-        print("RES: ", tickers)
-        logger.info("Fetched %d S&P 500 tickers.", len(tickers))
-        return tickers
 
     def get_previous_trading_day(self) -> datetime.date:
         """Return yesterday's date (Mon-Fri). Skips back over the weekend."""
@@ -131,7 +108,6 @@ class EarningsExtractor:
     # ------------------------------------------------------------------
 
     def build_operations(self, records: list[dict]) -> list[UpdateOne]:
-        """Convert records into MongoDB upsert operations."""
         ops = []
         for rec in records:
             filter_q = {
@@ -146,7 +122,6 @@ class EarningsExtractor:
     # ------------------------------------------------------------------
 
     def load(self, operations: list[UpdateOne]) -> dict:
-        """Bulk-upsert records; returns a summary dict."""
         if not operations:
             logger.info("No earnings records to load.")
             return {"upserted": 0, "modified": 0, "errors": 0}
@@ -177,10 +152,9 @@ class EarningsExtractor:
     # ------------------------------------------------------------------
 
     def run(self) -> dict:
-        """Run the full ETL pipeline. Returns a summary dict."""
         logger.info("=== EarningsExtractor starting ===")
 
-        tickers      = self.get_sp500_tickers()
+        tickers      = get_sp500_tickers()
         target_date  = self.get_previous_trading_day()
         records      = []
 

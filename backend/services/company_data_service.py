@@ -1,11 +1,13 @@
 import numpy as np
 import yfinance as yf
-from models.YFinanance import EarningsData
+from models.API_responses import EarningsData
 from repository.past_earnings_repository import PastEarningsRepository
+from analysis.engine import compute_impact_factors
 
 # Module that implements services related to company data, such as fetching and processing earnings data.
 
 DATE_FORMAT = "%Y-%m-%d"
+SP500_WIKI_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
 class CompanyDataService:
     def __init__(self, company_data_repository: PastEarningsRepository = None):
@@ -34,6 +36,7 @@ class CompanyDataService:
     
     def get_upcoming_earnings_estimates(self, ticker: str):
         data = yf.Ticker(ticker).get_earnings_estimate(as_dict=True)
+        print("Raw earnings estimates data: ", data)
         # only extract next quarter estimates 
         estimates = {
             "avg": data["avg"]["+1q"],
@@ -46,4 +49,9 @@ class CompanyDataService:
     def get_historical_earnings(self, ticker: str):
         if self.repo is None:
             raise ValueError("PastEarningsRepository is not initialized.")
-        return self.repo.get_earnings_by_ticker(ticker)
+        earnings_data = self.repo.get_earnings_by_ticker(ticker)
+        compute_impact_factors(earnings_data)
+        return earnings_data
+
+    def get_sp500_companies(self) -> list[str]:
+        pass

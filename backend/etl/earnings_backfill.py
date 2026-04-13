@@ -1,11 +1,3 @@
-"""
-Historical Earnings Backfill
-Loads 5 quarters  of earnings data for all S&P 500 companies into MongoDB.
-
-Database   : company_data
-Collection : earnings_history
-"""
-
 import logging
 import time
 from datetime import datetime, timedelta, timezone
@@ -16,7 +8,7 @@ import pandas as pd
 import yfinance as yf
 
 from repository.past_earnings_repository import PastEarningsRepository
-from core.dependencies import get_past_earnings_db, SECTOR_ETF_MAP
+from core.dependencies import get_company_data_db, SECTOR_ETF_MAP
 from utils import get_sp500_tickers, upsert_records
 
 logging.basicConfig(
@@ -34,13 +26,13 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
     try:
         t = yf.Ticker(ticker)
         dates_df = t.earnings_dates
+        print(dates_df)
         income_stmt = t.quarterly_income_stmt
 
         if dates_df is None or dates_df.empty:
             logger.debug("%s - no earnings_dates found, skipping.", ticker)
             return []
 
-        now = pd.Timestamp.now(tz="UTC")
         dates_df = dates_df.head(6)
 
         if dates_df.empty:
@@ -95,7 +87,6 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
         for dt, row in dates_df.iterrows():
             if dt > datetime.now(tz=timezone.utc):
                 continue
-
             eps_estimate = row.get("EPS Estimate")
             eps_actual   = row.get("Reported EPS")
             surprise_pct = row.get("Surprise(%)")
@@ -111,19 +102,19 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
                 prev_day       = get_prev_trading_day(report_date_str)
                 ref_close_date = prev_day
                 ref_open_date  = report_date_str
-                timing_label   = "before_market_open"
+                timing_label   = "Before market open"
             else:
                 next_day       = get_next_trading_day(report_date_str)
                 ref_close_date = report_date_str
                 ref_open_date  = next_day
-                timing_label   = "after_market_close"
+                timing_label   = "After market close"
 
             price_close = safe_float(price_data, ref_close_date, "Close")
             price_open  = safe_float(price_data, ref_open_date,  "Open")
 
             # Sector ETF uses the same date anchors as the price data
             sector_close = safe_float(macro_data, ref_close_date, ("Close", sector_etf_ticker))
-            sector_open  = safe_float(macro_data, ref_open_date,  ("Open",  sector_etf_ticker))
+            sector_open  = safe_float(macro_data, ref_open_date, ("Open",  sector_etf_ticker))
             sector_change = round((sector_open - sector_close) / sector_close * 100, 2) \
                 if sector_close and sector_open else None
 
@@ -166,8 +157,8 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
             record = records[i]
             record.update({
                 "normalized_EBITA": float(income_stmt.iloc[NORMALIZED_EBITDA_ROW, i]) if pd.notna(income_stmt.iloc[NORMALIZED_EBITDA_ROW, i]) else None,
-                "total_revenue":    float(income_stmt.iloc[TOTAL_REVENUE_ROW,     i]) if pd.notna(income_stmt.iloc[TOTAL_REVENUE_ROW,     i]) else None,
-                "operating_income": float(income_stmt.iloc[OPERATING_INCOME_ROW,  i]) if pd.notna(income_stmt.iloc[OPERATING_INCOME_ROW,  i]) else None,
+                "total_revenue":    float(income_stmt.iloc[TOTAL_REVENUE_ROW, i]) if pd.notna(income_stmt.iloc[TOTAL_REVENUE_ROW, i]) else None,
+                "operating_income": float(income_stmt.iloc[OPERATING_INCOME_ROW, i]) if pd.notna(income_stmt.iloc[OPERATING_INCOME_ROW, i]) else None,
             })
 
     except Exception as exc:
@@ -177,10 +168,10 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
 
 def run_backfill(repo: PastEarningsRepository):
     tickers = get_sp500_tickers()
-
-    total_upserted = 0
-    total_modified = 0
-    total_errors   = 0
+    
+    total_upserted    = 0
+    total_modified    = 0
+    total_errors      = 0
     tickers_with_data = 0
 
     for i, ticker in enumerate(tickers, 1):
@@ -231,6 +222,6 @@ if __name__ == "__main__":
         force=True
     )
     
-    run_backfill(PastEarningsRepository(collection=get_past_earnings_db()))
+    run_backfill(PastEarningsRepository(collection=get_company_data_db()))
         
         

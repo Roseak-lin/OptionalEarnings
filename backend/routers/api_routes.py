@@ -1,17 +1,13 @@
 from fastapi import APIRouter, Depends
-from massive import RESTClient
-from core.config import POLYGON_IO_KEY
-from backend.models.YFinanance import EarningsData, YFinanceResponse, CompanyInfoResponse
+
+from backend.services.sp500_info_service import SP500InfoService
+from backend.analysis.engine import generate_earnings_summary
+
+from backend.models.API_responses import CompanyInfoResponse, BulkCompanyEarningsResponse
 from backend.services.company_data_service import CompanyDataService
-from backend.core.dependencies import get_company_data_service
+from backend.core.dependencies import get_company_data_service, get_sp500_info_service
 
 router = APIRouter(prefix="/api")
-polygon_client = RESTClient(POLYGON_IO_KEY)
-
-@router.get("/upcoming-earnings", description="Fetches upcoming earnings data for a given ticker, including earnings date, EPS estimate, and actual EPS if available.")
-def get_upcoming_earnings(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)) -> YFinanceResponse:
-    earnings_list = company_data_service.fetch_earnings_data(ticker)
-    return YFinanceResponse(ticker=ticker, earnings=earnings_list)
 
 @router.get("/company-info", description="Fetches company information such as industry, sector, location, market cap, and business summary.") 
 def get_company_info(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)) -> CompanyInfoResponse:
@@ -36,4 +32,10 @@ def get_earnings_estimates(ticker: str, company_data_service: CompanyDataService
 @router.get("/earnings-history", description="Fetches historical earnings data for a given ticker, including past earnings dates, EPS estimates, and actual EPS values.")
 def get_earnings_history(ticker: str, company_data_service: CompanyDataService = Depends(get_company_data_service)):
     earnings_list = company_data_service.get_historical_earnings(ticker.upper())
-    return YFinanceResponse(ticker=ticker, earnings=earnings_list)
+    summary = generate_earnings_summary(ticker, earnings_list)
+    return BulkCompanyEarningsResponse(ticker=ticker, earnings=earnings_list, earnings_summary=summary)
+
+@router.get("/sp500-companies", description="Fetches the list of S&P 500 companies along with their tickers and sectors.")
+def get_sp500_companies(sp500_info_service: SP500InfoService = Depends(get_sp500_info_service)):
+    sp500_data = sp500_info_service.get_all_companies()
+    return sp500_data

@@ -1,14 +1,11 @@
 from io import StringIO
-import os
-import sys
-from pathlib import Path
 import pandas as pd
 from pymongo.errors import BulkWriteError
 import requests
 
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # add backend/ to path for imports
-from backend.repository.historical_market_data_repository import HistoricalMarketDataRepository
-from backend.repository.past_earnings_repository import PastEarningsRepository
+from repository.historical_market_data_repository import HistoricalMarketDataRepository
+from repository.past_earnings_repository import PastEarningsRepository
+from repository.sp500_company_repository import SP500CompanyRepository
 
 SP500_WIKI_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
@@ -25,7 +22,7 @@ def get_sp500_tickers() -> list[str]:
     return tickers
 
 def upsert_records(
-    repo: PastEarningsRepository | HistoricalMarketDataRepository,
+    repo: PastEarningsRepository | HistoricalMarketDataRepository | SP500CompanyRepository,
     records: list[dict]
 ) -> dict:
     if not records:
