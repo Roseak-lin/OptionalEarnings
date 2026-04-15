@@ -26,7 +26,6 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
     try:
         t = yf.Ticker(ticker)
         dates_df = t.earnings_dates
-        print(dates_df)
         income_stmt = t.quarterly_income_stmt
 
         if dates_df is None or dates_df.empty:
@@ -103,27 +102,30 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
                 ref_close_date = prev_day
                 ref_open_date  = report_date_str
                 timing_label   = "Before market open"
+                vix_val = safe_float(macro_data, ref_close_date, ("Open", "^VIX"))
+                if vix_val is None:
+                    past_data = macro_data[macro_data.index <= ref_close_date]
+                    vix_val = round(float(past_data.iloc[-1].loc["Open", "^VIX"]), 2) \
+                        if not past_data.empty else None
             else:
                 next_day       = get_next_trading_day(report_date_str)
                 ref_close_date = report_date_str
                 ref_open_date  = next_day
                 timing_label   = "After market close"
+                vix_val = safe_float(macro_data, ref_close_date, ("Close", "^VIX"))
+                if vix_val is None:
+                    past_data = macro_data[macro_data.index <= ref_close_date]
+                    vix_val = round(float(past_data.iloc[-1].loc["Close", "^VIX"]), 2) \
+                        if not past_data.empty else None
 
-            price_close = safe_float(price_data, ref_close_date, "Close")
-            price_open  = safe_float(price_data, ref_open_date,  "Open")
+            price_close = round(safe_float(price_data, ref_close_date, "Close"), 2)
+            price_open  = round(safe_float(price_data, ref_open_date,  "Open"), 2)
 
             # Sector ETF uses the same date anchors as the price data
-            sector_close = safe_float(macro_data, ref_close_date, ("Close", sector_etf_ticker))
-            sector_open  = safe_float(macro_data, ref_open_date, ("Open",  sector_etf_ticker))
+            sector_close = round(safe_float(macro_data, ref_close_date, ("Close", sector_etf_ticker)), 2)
+            sector_open  = round(safe_float(macro_data, ref_open_date, ("Open",  sector_etf_ticker)), 2)
             sector_change = round((sector_open - sector_close) / sector_close * 100, 2) \
                 if sector_close and sector_open else None
-
-            # VIX: use the close on the ref_close_date (nearest prior day as fallback)
-            vix_val = safe_float(macro_data, ref_close_date, ("Close", "^VIX"))
-            if vix_val is None:
-                past_data = macro_data[macro_data.index <= ref_close_date]
-                vix_val = round(float(past_data.iloc[-1].loc["Close", "^VIX"]), 2) \
-                    if not past_data.empty else None
 
             record = {
                 "ticker":            ticker,
@@ -139,12 +141,12 @@ def fetch_historical_earnings(ticker: str) -> list[dict]:
                 "fetched_at":        datetime.now(timezone.utc).replace(tzinfo=None),
                 "ref_close_date":    ref_close_date,
                 "ref_open_date":     ref_open_date,
-                "price_ref_close":   round(price_close, 2) if price_close is not None else None,
-                "price_ref_open":    round(price_open, 2) if price_open is not None else None,
-                "sector_ref_close":  round(sector_close, 2) if sector_close is not None else None,
-                "sector_ref_open":   round(sector_open, 2) if sector_open is not None else None,
+                "price_ref_close":   price_close if price_close is not None else None,
+                "price_ref_open":    price_open if price_open is not None else None,
+                "sector_ref_close":  sector_close if sector_close is not None else None,
+                "sector_ref_open":   sector_open if sector_open is not None else None,
                 "sector_etf_change": sector_change,
-                "vix_close":         float(vix_val) if vix_val and pd.notna(vix_val) else None,
+                "vix_val":           float(vix_val) if vix_val and pd.notna(vix_val) else None,
             }
 
             records.append(record)
@@ -223,5 +225,3 @@ if __name__ == "__main__":
     )
     
     run_backfill(PastEarningsRepository(collection=get_company_data_db()))
-        
-        

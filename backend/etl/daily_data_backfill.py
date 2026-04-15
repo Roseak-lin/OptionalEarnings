@@ -52,7 +52,12 @@ def run_backfill(repo: HistoricalMarketDataRepository) -> None:
     for symbol in TARGET_SYMBOLS:
         logger.info("Fetching historical market data for %s", symbol)
         market_data = fetch_historical_market_data(symbol)
-        upsert_records(repo, market_data)
+        results = upsert_records(repo, market_data)
+        logger.info("Finished processing ticker : %s", symbol)
+        logger.info("Total upserted             : %d", results.get("upserted", 0))
+        logger.info("Total modified             : %d", results.get("modified", 0))
+        logger.info("Total errors               : %d", results.get("errors", 0))
+
     
 if __name__ == "__main__":
     repo = HistoricalMarketDataRepository(collection=get_general_market_data())
