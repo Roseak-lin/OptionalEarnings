@@ -1,0 +1,25 @@
+@reference "../../app/globals.css";
+
+.card {
+  @apply p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900;
+}
+
+.title {
+  @apply text-2xl font-bold mb-2;
+}
+
+.grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm;
+}
+
+.label {
+  @apply text-zinc-500 block;
+}
+
+.value {
+  @apply font-medium;
+}
+
+.description {
+  @apply text-sm text-zinc-600 dark:text-zinc-400 mt-4 leading-relaxed;
+}

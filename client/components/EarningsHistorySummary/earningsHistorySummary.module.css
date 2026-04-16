@@ -1,0 +1,9 @@
+@reference "../../app/globals.css";
+
+.title {
+  @apply text-lg font-semibold p-2;
+}
+
+.text {
+  @apply p-2;
+}

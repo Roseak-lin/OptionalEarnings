@@ -1,0 +1,105 @@
+@reference "../../app/globals.css";
+
+.title {
+  @apply text-lg font-semibold mb-4;
+}
+
+.tableWrapper {
+  @apply overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900;
+}
+
+.table {
+  @apply w-full text-left text-sm whitespace-normal;
+}
+
+.thead {
+  @apply border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950;
+}
+
+.th {
+  @apply p-4 font-medium;
+}
+
+.thIcon {
+  @apply p-4 font-medium w-8;
+}
+
+.tbody {
+  @apply divide-y divide-zinc-200 dark:divide-zinc-800;
+}
+
+.trMain {
+  @apply hover:bg-zinc-50 dark:hover:bg-zinc-950/50 transition-colors cursor-pointer;
+}
+
+.td {
+  @apply p-4;
+}
+
+.tdIcon {
+  @apply p-4 text-zinc-400;
+}
+
+.tdDate {
+  @apply p-4 font-medium;
+}
+
+.textPositive {
+  @apply text-green-300;
+}
+
+.textVeryPositive {
+  @apply text-green-600;
+}
+
+.textNegative {
+  @apply text-red-300;
+}
+
+.textVeryNegative {
+  @apply text-red-600;
+}
+
+.trExpanded {
+  @apply bg-zinc-50/50 dark:bg-zinc-950/30;
+}
+
+.tdExpanded {
+  @apply p-6 border-b border-zinc-200 dark:border-zinc-800;
+}
+
+.grid {
+  @apply grid grid-cols-1 md:grid-cols-5 gap-6;
+}
+
+.sectionTitle {
+  @apply text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2;
+}
+
+.detailsGroup {
+  @apply space-y-2 mb-4 text-sm;
+}
+
+.detailsGroupNoMargin {
+  @apply space-y-2 text-sm;
+}
+
+.label {
+  @apply text-zinc-500 mr-2;
+}
+
+.highlightValue {
+  @apply font-medium text-zinc-900 dark:text-zinc-100;
+}
+
+.capitalize {
+  @apply capitalize;
+}
+
+.spacer {
+  @apply h-2;
+}
+
+.notCalculated {
+  @apply text-sm text-zinc-500;
+}

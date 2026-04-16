@@ -5,7 +5,8 @@ import {
   formatCurrencyLarge,
   formatDate,
   formatPercentage,
-} from "../utils/formatters";
+} from "../../utils/formatters";
+import styles from "./earningsTable.module.css";
 
 interface EarningsTableProps {
   earningsHistory: any[];
@@ -18,111 +19,113 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
     setExpandedRow(expandedRow === idx ? null : idx);
   };
 
-  if (!earningsHistory || earningsHistory.length === 0) return null;
+  const computeSurpriseCategory = (percentage: number | null) => {
+    if (percentage === null) return "";
+    if (percentage >= 3.5) return styles.textVeryPositive;
+    else if (percentage > 0) return styles.textPositive;
+    else if (percentage <= -3.5) return styles.textVeryNegative;
+    else return styles.textNegative;
+  }
 
+  if (!earningsHistory || earningsHistory.length === 0) return null;
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-4">
+      <h2 className={styles.title}>
         Comprehensive Earnings History
       </h2>
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        <table className="w-full text-left text-sm whitespace-normal">
-          <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead className={styles.thead}>
             <tr>
-              <th className="p-4 font-medium w-8"></th>
-              <th className="p-4 font-medium">Earnings Date</th>
-              <th className="p-4 font-medium">EPS Est</th>
-              <th className="p-4 font-medium">EPS Actual</th>
-              <th className="p-4 font-medium">Surprise</th>
-              <th className="p-4 font-medium">Total Revenue</th>
+              <th className={styles.thIcon}></th>
+              <th className={styles.th}>Earnings Date</th>
+              <th className={styles.th}>EPS Est</th>
+              <th className={styles.th}>EPS Actual</th>
+              <th className={styles.th}>Surprise</th>
+              <th className={styles.th}>Total Revenue</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+          <tbody className={styles.tbody}>
             {earningsHistory.map((earning, idx) => (
               <React.Fragment key={idx}>
                 <tr
                   onClick={() => toggleRow(idx)}
-                  className="hover:bg-zinc-50 dark:hover:bg-zinc-950/50 transition-colors cursor-pointer"
+                  className={styles.trMain}
                 >
-                  <td className="p-4 text-zinc-400">
+                  <td className={styles.tdIcon}>
                     {expandedRow === idx ? "▼" : "▶"}
                   </td>
-                  <td className="p-4 font-medium">
+                  <td className={styles.tdDate}>
                     {formatDate(earning.earnings_date)}
                   </td>
-                  <td className="p-4">
+                  <td className={styles.td}>
                     {earning.eps_estimate !== null
-                      ? earning.eps_estimate
+                      ? earning.eps_estimate.toFixed(2)
                       : "N/A"}
                   </td>
-                  <td className="p-4">
-                    {earning.eps_actual !== null ? earning.eps_actual : "N/A"}
+                  <td className={styles.td}>
+                    {earning.eps_actual !== null ? earning.eps_actual.toFixed(2) : "N/A"}
                   </td>
                   <td
-                    className={`p-4 ${earning.surprise_pct && earning.surprise_pct > 0 ? "text-green-600 dark:text-green-400" : earning.surprise_pct && earning.surprise_pct < 0 ? "text-red-600 dark:text-red-400" : ""}`}
+                    className={`${styles.td} ${
+                      earning.surprise_pct && earning.surprise_pct > 0
+                        ? styles.textPositive
+                        : earning.surprise_pct && earning.surprise_pct < 0
+                        ? styles.textNegative
+                        : ""
+                    }`}
                   >
                     {formatPercentage(earning.surprise_pct)}
                   </td>
-                  <td className="p-4">
+                  <td className={styles.td}>
                     {formatCurrencyLarge(earning.total_revenue)}
                   </td>
                 </tr>
                 {expandedRow === idx && (
-                  <tr className="bg-zinc-50/50 dark:bg-zinc-950/30">
-                    <td
-                      colSpan={6}
-                      className="p-6 border-b border-zinc-200 dark:border-zinc-800"
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  <tr className={styles.trExpanded}>
+                    <td colSpan={6} className={styles.tdExpanded}>
+                      <div className={styles.grid}>
                         <div>
-                          <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                          <h4 className={styles.sectionTitle}>
                             Details & Timing
                           </h4>
-                          <div className="space-y-2 mb-4 text-sm">
+                          <div className={styles.detailsGroup}>
                             <p>
-                              <span className="text-zinc-500 mr-2">Name:</span>{" "}
+                              <span className={styles.label}>Name:</span>{" "}
                               {earning.company_name || "N/A"}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
-                                Industry:
-                              </span>{" "}
+                              <span className={styles.label}>Industry:</span>{" "}
                               {earning.industry || "N/A"}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
-                                Sector:
-                              </span>{" "}
+                              <span className={styles.label}>Sector:</span>{" "}
                               {earning.sector || "N/A"}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
-                                Sector ETF:
-                              </span>{" "}
+                              <span className={styles.label}>Sector ETF:</span>{" "}
                               {earning.sector_etf || "N/A"}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
-                                Timing:
-                              </span>{" "}
+                              <span className={styles.label}>Timing:</span>{" "}
                               {earning.earnings_timing || "N/A"}
                             </p>
                           </div>
                         </div>
 
                         <div>
-                          <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                          <h4 className={styles.sectionTitle}>
                             Price Action
                           </h4>
-                          <div className="space-y-2 text-sm">
+                          <div className={styles.detailsGroupNoMargin}>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Ref Close Date:
                               </span>{" "}
                               {formatDate(earning.ref_close_date)}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Price Ref Close:
                               </span>{" "}
                               {earning.price_ref_close
@@ -130,22 +133,22 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
                                 : "N/A"}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Sector Ref Close:
                               </span>{" "}
                               {earning.sector_ref_close
                                 ? `$${earning.sector_ref_close.toFixed(2)}`
                                 : "N/A"}
                             </p>
-                            <div className="h-2"></div>
+                            <div className={styles.spacer}></div>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Ref Open Date:
                               </span>{" "}
                               {formatDate(earning.ref_open_date)}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Price Ref Open:
                               </span>{" "}
                               {earning.price_ref_open
@@ -154,7 +157,9 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
                               {earning.price_ref_open &&
                                 earning.price_ref_close && (
                                   <span
-                                    className={`ml-2 ${earning.price_ref_open >= earning.price_ref_close ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                                    className={`ml-2 ${
+                                      computeSurpriseCategory((earning.price_ref_open - earning.price_ref_close) / earning.price_ref_close * 100)
+                                    }`}
                                   >
                                     (
                                     {earning.price_ref_open >=
@@ -172,7 +177,7 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
                                 )}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Sector Ref Open:
                               </span>{" "}
                               {earning.sector_ref_open
@@ -181,7 +186,9 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
                               {earning.sector_ref_open &&
                                 earning.sector_ref_close && (
                                   <span
-                                    className={`ml-2 ${earning.sector_ref_open >= earning.sector_ref_close ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                                    className={`ml-2 ${
+                                      computeSurpriseCategory((earning.sector_ref_open - earning.sector_ref_close) / earning.sector_ref_close * 100)
+                                    }`}
                                   >
                                     (
                                     {earning.sector_ref_open >=
@@ -202,18 +209,18 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
                         </div>
 
                         <div>
-                          <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                          <h4 className={styles.sectionTitle}>
                             Extended Financials
                           </h4>
-                          <div className="space-y-2 text-sm">
+                          <div className={styles.detailsGroupNoMargin}>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Operating Income:
                               </span>{" "}
                               {formatCurrencyLarge(earning.operating_income)}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 Norm. EBITA:
                               </span>{" "}
                               {formatCurrencyLarge(earning.normalized_EBITA)}
@@ -222,28 +229,27 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
                         </div>
 
                         <div>
-                          <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                          <h4 className={styles.sectionTitle}>
                             Impact Analysis
                           </h4>
                           {earning.impact_factors ? (
-                            <div className="space-y-2 text-sm">
+                            <div className={styles.detailsGroupNoMargin}>
                               <p>
-                                <span className="text-zinc-500 mr-2">
+                                <span className={styles.label}>
                                   Primary Driver:
                                 </span>{" "}
-                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                <span className={styles.highlightValue}>
                                   {earning.impact_factors.primary_driver}
                                 </span>
                               </p>
                               <p>
-                                <span className="text-zinc-500 mr-2">
+                                <span className={styles.label}>
                                   Excess Return:
                                 </span>{" "}
                                 {earning.impact_factors.excess_return}%
                               </p>
                               <p>
-                                <span className="text-zinc-500 mr-2">
-                                  {/*  */}
+                                <span className={styles.label}>
                                   Attr. Score:
                                 </span>{" "}
                                 {
@@ -252,46 +258,46 @@ export default function EarningsTable({ earningsHistory }: EarningsTableProps) {
                                 }
                               </p>
                               <p>
-                                <span className="text-zinc-500 mr-2">
+                                <span className={styles.label}>
                                   Volatility Factor:
                                 </span>{" "}
-                                <span className="capitalize">
+                                <span className={styles.capitalize}>
                                   {earning.impact_factors.volatility_factor}
                                 </span>
                               </p>
                               <p>
-                                <span className="text-zinc-500 mr-2">
+                                <span className={styles.label}>
                                   Sector Influence:
                                 </span>{" "}
-                                <span className="capitalize">
+                                <span className={styles.capitalize}>
                                   {earning.impact_factors.sector_influence}
                                 </span>
                               </p>
                             </div>
                           ) : (
-                            <p className="text-sm text-zinc-500">
+                            <p className={styles.notCalculated}>
                               Not calculated
                             </p>
                           )}
                         </div>
 
                         <div>
-                          <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                          <h4 className={styles.sectionTitle}>
                             Market & System
                           </h4>
-                          <div className="space-y-2 mb-4 text-sm">
+                          <div className={styles.detailsGroup}>
                             <p>
-                              <span className="text-zinc-500 mr-2">
+                              <span className={styles.label}>
                                 ETF Change:
                               </span>{" "}
                               {formatPercentage(earning.sector_etf_change)}
                             </p>
                             <p>
-                              <span className="text-zinc-500 mr-2">
-                                VIX Close:
+                              <span className={styles.label}>
+                                VIX {earning.earnings_timing === "Before market open" ? "Open" : "Close"}:
                               </span>{" "}
-                              {earning.vix_close
-                                ? earning.vix_close.toFixed(2)
+                              {earning.vix_val
+                                ? earning.vix_val.toFixed(2)
                                 : "N/A"}
                             </p>
                           </div>

@@ -1,0 +1,21 @@
+@reference "./globals.css";
+
+.container {
+  @apply min-h-screen bg-zinc-50 dark:bg-black font-sans text-zinc-900 dark:text-zinc-50;
+}
+
+.header {
+  @apply border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-6 py-4;
+}
+
+.title {
+  @apply text-xl font-bold tracking-tight;
+}
+
+.main {
+  @apply p-6 max-w-7xl mx-auto space-y-8;
+}
+
+.error {
+  @apply text-red-500 font-medium;
+}

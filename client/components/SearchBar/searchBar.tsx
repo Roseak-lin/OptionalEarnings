@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import type { CompanyInfo } from "@/types";
-
 import {
   Combobox,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
+import styles from "./searchBar.module.css";
 
 interface SearchBarProps {
   setSearchInput: (value: string | null) => void;
@@ -36,7 +36,7 @@ export default function SearchBar({
         );
 
   return (
-    <div className="flex items-center gap-2 w-full">
+    <div className={styles.container}>
       <Combobox
         value={selectedCompany}
         onChange={(company: CompanyInfo | null) => {
@@ -50,18 +50,13 @@ export default function SearchBar({
             company ? `${company.name} (${company.ticker})` : ""
           }
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full rounded-lg border-none bg-white/15 py-1.5 pr-8 pl-3 text-sm/6 text-white"
+          className={styles.input}
+          autoComplete="off"
         />
 
-        <ComboboxOptions
-          anchor="bottom"
-          className="w-(--input-width) rounded-xl border border-white/30 bg-black/90 p-1 [--anchor-gap:--spacing(1)] [--anchor-max-height:280px]"
-        >
+        <ComboboxOptions anchor="bottom" className={styles.options}>
           {({ option }) => (
-            <ComboboxOption
-              value={option}
-              className="w-full group flex cursor-default items-center gap-2 rounded-lg px-3 py-1.5 select-none data-focus:bg-white/10"
-            >
+            <ComboboxOption value={option} className={styles.option}>
               {option.name} ({option.ticker})
             </ComboboxOption>
           )}
@@ -71,7 +66,7 @@ export default function SearchBar({
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-zinc-900 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50 shrink-0"
+        className={styles.button}
         onClick={handleSearch}
       >
         {loading ? "Searching..." : "Search"}

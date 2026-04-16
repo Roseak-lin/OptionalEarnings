@@ -1,3 +1,5 @@
+import styles from "./earningsHistorySummary.module.css";
+
 export default function EarningsHistorySummary({
   summary,
 }: {
@@ -6,9 +8,9 @@ export default function EarningsHistorySummary({
   if (!summary) return null;
   return (
     <section>
-      <h2 className="text-lg font-semibold p-2">Summary: </h2>
+      <h2 className={styles.title}>Summary: </h2>
       <div>
-        <p className="p-2">{summary}</p>
+        <p className={styles.text}>{summary}</p>
       </div>
     </section>
   );

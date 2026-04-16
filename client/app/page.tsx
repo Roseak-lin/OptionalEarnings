@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import SearchBar from "@/components/searchBar";
-import CompanyInfoCard from "@/components/companyInfoCard";
-import EarningsTable from "@/components/earningsTable";
-import EarningsHistorySummary from "@/components/earningsHistorySummary";
-
-import type {CompanyInfo} from "@/types/index";
-import UpcomingEarnings from "@/components/upcomingEarnings";
+import React, { useEffect, useMemo, useState } from "react";
+import SearchBar from "@/components/SearchBar/searchBar";
+import CompanyInfoCard from "@/components/CompanyInfoCard/companyInfoCard";
+import EarningsTable from "@/components/EarningTable/earningsTable";
+import EarningsHistorySummary from "@/components/EarningsHistorySummary/earningsHistorySummary";
+import type { CompanyInfo, UpcomingEarnings } from "@/types/index";
+import UpcomingEarningsList from "@/components/UpcomingEarnings/upcomingEarnings";
+import styles from "./page.module.css";
 
 export default function Home() {
   const [searchInput, setSearchInput] = useState<string | null>("");
@@ -15,15 +15,15 @@ export default function Home() {
   const [earningsHistory, setEarningsHistory] = useState<any[]>([]);
   const [earningsAnalysis, setEarningsAnalysis] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [loadingUpcoming, setLoadingUpcoming] = useState(true);
   const [error, setError] = useState("");
   const [sP500Companies, setSP500Companies] = useState<CompanyInfo[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<CompanyInfo | null>(null);
-  const [upcomingEarnings, setUpcomingEarnings] = useState<any[]>([]);
+  const [upcomingEarnings, setUpcomingEarnings] = useState<UpcomingEarnings[]>([]);
 
   const url = process.env.BACKEND_URL_LOCAL || "http://localhost:8000";
-  
+
   useEffect(() => {
-    // fetch SP500 companies for search dropdown
     fetch(`${url}/api/sp500-companies`)
       .then((res) => res.json())
       .then((data) => {
@@ -31,11 +31,11 @@ export default function Home() {
       })
       .catch((err) => console.error("Error fetching SP500 companies:", err));
   
-    // fetch upcoming earnings for SP500 companies
     fetch(`${url}/api/get-upcoming-earnings`)
       .then((res) => res.json())
       .then((data) => {
         setUpcomingEarnings(data || []);
+        setLoadingUpcoming(false);
       })
       .catch((err) => console.error("Error fetching upcoming earnings:", err));
     }, []);
@@ -52,25 +52,18 @@ export default function Home() {
 
     try {
       const [infoRes, earningsRes] = await Promise.all([
-        fetch(
-          `${url}/api/company-info?ticker=${searchInput.toUpperCase()}`,
-        ),
-        fetch(
-          `${url}/api/earnings-history?ticker=${searchInput.toUpperCase()}`,
-        ),
+        fetch(`${url}/api/company-info?ticker=${searchInput.toUpperCase()}`),
+        fetch(`${url}/api/earnings-history?ticker=${searchInput.toUpperCase()}`),
       ]);
 
       if (!infoRes.ok || !earningsRes.ok) {
-        throw new Error(
-          "Failed to fetch data. Please check the ticker and try again.",
-        );
+        throw new Error("Failed to fetch data. Please check the ticker and try again.");
       }
 
       const infoData = await infoRes.json();
       const earningsData = await earningsRes.json();
       setCompanyInfo(infoData);
       setEarningsHistory(earningsData.earnings || []);
-      
       setEarningsAnalysis(earningsData.earnings_summary);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
@@ -80,12 +73,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans text-zinc-900 dark:text-zinc-50">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-6 py-4">
-        <h1 className="text-xl font-bold tracking-tight">Optional Earnings</h1>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Optional Earnings</h1>
       </header>
 
-      <main className="p-6 max-w-7xl mx-auto space-y-8">
+      <main className={styles.main}>
         <SearchBar
           setSearchInput={setSearchInput}
           handleSearch={handleSearch}
@@ -95,15 +88,15 @@ export default function Home() {
           sp500Companies={sP500Companies}
         />
 
-        {error && <div className="text-red-500 font-medium">{error}</div>}
+        {error && <div className={styles.error}>{error}</div>}
 
         <CompanyInfoCard companyInfo={companyInfo} />
-
+        
         <EarningsTable earningsHistory={earningsHistory} />
 
         <EarningsHistorySummary summary={earningsAnalysis} />
-        
-        <UpcomingEarnings earnings={upcomingEarnings} />
+
+        <UpcomingEarningsList loading={loadingUpcoming} earnings={upcomingEarnings} />
       </main>
     </div>
   );

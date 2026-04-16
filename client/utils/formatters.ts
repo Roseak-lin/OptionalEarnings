@@ -1,5 +1,6 @@
 export const formatCurrencyLarge = (num: number | null | undefined) => {
   if (num === null || num === undefined) return "N/A";
+  if (Math.abs(num) >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
   if (Math.abs(num) >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
   if (Math.abs(num) >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
   return `$${num.toLocaleString()}`;
